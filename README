@@ -1,0 +1,3 @@
+Tools used to generate / simulate multi-genomes
+
+generate_genomes.py	given a genome generate other genomes with SNPs (including indels)
