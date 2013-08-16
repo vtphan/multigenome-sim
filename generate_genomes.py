@@ -13,7 +13,6 @@ BASES = ['A','C','G','T']
 DEBUG = False
 N = 10  # Number of genomes
 
-ERR_RATE = 0.02
 MUT_RATE = 0.001
 
 # compared with SNPs, indels occur at approximately eightfold lower rates (Lunter 2007; Cartwright 2009)
@@ -70,15 +69,15 @@ def random_deletion_length():
 
 #------------------------------------------------------------------------------
 
-def generate_errors( genome ):
-   errors = int(ERR_RATE * len(genome))
-   for i in range(errors):
-      pos = random.randint(0, len(genome)-1)
-      choices = list(BASES)
-      choices.remove(genome[pos].upper())
-      c = random.choice(choices)
-      genome[pos] = c if not DEBUG else c.lower()
-   return genome
+# def generate_errors( genome ):
+#    errors = int(ERR_RATE * len(genome))
+#    for i in range(errors):
+#       pos = random.randint(0, len(genome)-1)
+#       choices = list(BASES)
+#       choices.remove(genome[pos].upper())
+#       c = random.choice(choices)
+#       genome[pos] = c if not DEBUG else c.lower()
+#    return genome
 
 #------------------------------------------------------------------------------
 
@@ -110,8 +109,6 @@ def generate_genome(dna, SNP_profile, header, idx):
       genome[pos] += (random_insertion() if not DEBUG else random_insertion().lower())
    genome = [ x for x in genome if x != '-']
 
-   genome = generate_errors(genome)
-
    genome = ''.join(genome)
 
    new_header = '>%s.%s' % (idx+1, header[1:])
@@ -136,8 +133,6 @@ def output_SNP_profile( profile ):
 if __name__ == '__main__':
    parser = argparse.ArgumentParser(description='Generate multiple genomes based on a reference genome.')
    parser.add_argument('file_name', help='genome_file.fasta')
-   parser.add_argument('-e','--error_rate',
-      help='Base error rate (default %s)' % ERR_RATE, type=float, default=ERR_RATE)
    parser.add_argument('-m','--mutation_rate',
       help='Base mutation rate (default %s)' % MUT_RATE, type=float, default=MUT_RATE)
    parser.add_argument('-i','--indel_frac',
@@ -148,7 +143,7 @@ if __name__ == '__main__':
    parser.add_argument('--debug', help='Turn on debug mode (default %s)' % DEBUG, action="store_true")
 
    args = vars(parser.parse_args())
-   ERR_RATE, MUT_RATE, INDEL_FRAC, INDEL_EXT = args['error_rate'],args['mutation_rate'],args['indel_frac'],args['indel_ext']
+   MUT_RATE, INDEL_FRAC, INDEL_EXT = args['mutation_rate'],args['indel_frac'],args['indel_ext']
    N = args['n']
    DEBUG = args['debug']
 
@@ -159,7 +154,7 @@ if __name__ == '__main__':
       sys.exit(0)
    header = lines.pop(0)
    dna = ''.join(lines).upper()
-   if any( x for x in dna if x not in ['A','C','G','T'] ):
+   if any( x for x in dna if x not in ['A','C','G','T','N'] ):
       print 'Content is not a valid DNA sequence, which must consist of only a,c,g,t.'
       sys.exit(0)
 
