@@ -1,4 +1,50 @@
 Tools used to generate / simulate multi-genomes
 
-generate_genomes.py	given a genome generate other genomes with SNPs (including indels)
-generate_reads.py	given a genome generate reads from it
+==========================================================================
+generate_genomes.py
+	given a genome generate other genomes with SNPs (including indels)
+
+
+Usage: generate_genomes.py [-h] [-m MUTATION_RATE] [-p FIRST_PROB]
+                           [-i INDEL_FRAC] [-ie INDEL_EXT] [-n N] [--debug]
+                           file_name
+
+Generate multiple genomes based on a reference genome.
+
+positional arguments:
+  file_name             genome_file.fasta
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -m MUTATION_RATE, --mutation_rate MUTATION_RATE
+                        Base mutation rate (default 0.001)
+  -p FIRST_PROB, --first_prob FIRST_PROB
+                        Probability of first base in a SNP profile (default
+                        0.75)
+  -i INDEL_FRAC, --indel_frac INDEL_FRAC
+                        Indel fraction of SNP (default 0.1111)
+  -ie INDEL_EXT, --indel_ext INDEL_EXT
+                        Indel extension probability (default 0.3)
+  -n N                  Number of genomes (default 10)
+  --debug               Turn on debug mode (default False)
+
+==========================================================================
+
+generate_reads.py	
+	given a genome generate reads from it
+
+
+Usage: generate_reads.py [-h] [-e ERROR_RATE] [--debug] file_name length N
+
+Generate reads based on a reference genome.
+
+positional arguments:
+  file_name             genome_file.fasta
+  length                read length
+  N                     number of reads
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -e ERROR_RATE, --error_rate ERROR_RATE
+                        Base error rate (default 0.02)
+  --debug               Turn on debug mode (default False)

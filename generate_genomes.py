@@ -19,12 +19,14 @@ MUT_RATE = 0.001
 INDEL_FRAC = 1.0/9.0
 INDEL_EXT = 0.3
 
+FIRST_PROB = 0.75
+
 #------------------------------------------------------------------------------
 def sample_frequencies( snp_profile ):
-   f = []
-   limit = N
-   sum = 0
-   for i in range(len(snp_profile)-1):
+   f = [ int(FIRST_PROB * N) ]
+   limit = N - int(FIRST_PROB * N)
+   sum = int(FIRST_PROB * N)
+   for i in range(1, len(snp_profile)-1):
       v = random.randint(0, limit)
       sum += v
       limit = N - sum
@@ -112,21 +114,57 @@ def generate_genome(dna, SNP_profile, header, idx):
    genome = ''.join(genome)
 
    new_header = '>%s.%s' % (idx+1, header[1:])
-   with open('multigenome.fasta', 'a') as f:
-      f.write(new_header)
+
+   if idx == 0:
+      save_to_file('x.fasta', 'w', new_header, genome, idx)
+   else:
+      if idx == 1:
+         save_to_file('reference.fasta', 'w', new_header, genome, idx)
+      save_to_file('multigenome.fasta', 'a', new_header, genome, idx)
+
+#------------------------------------------------------------------------------
+def save_to_file(filename, mode, header, genome, idx):
+   with open(filename, mode) as f:
+      f.write(header)
       f.write('\n')
       f.write(genome)
       f.write('\n')
-      print 'Save genome #%s to multigenome.fasta' % idx
+      # print 'Save genome #%s to %s' % (idx+1, filename)
+
+#------------------------------------------------------------------------------
+def log2(x):
+   return math.log(x)/math.log(2)
+
+#------------------------------------------------------------------------------
+def entropy( freq ):
+   N = float(freq[-1])
+   p = [float(freq[0])/N]
+   for i in range(1, len(freq)):
+      p.append( float(freq[i]-freq[i-1]) / N )
+   e = 0
+   count = 0
+   for x in p:
+      if x > 0:
+         e += - (x * log2(x))
+         count += 1
+   return e, log2(count)
 
 #------------------------------------------------------------------------------
 
 def output_SNP_profile( profile ):
    with open('snp_profile.txt', 'w') as f:
-      f.write('Note: at each position, an indel occurs with default probability of 11%.\n')
-      f.write('Pos\tSNP\tCumulative Expected Frequency\n')
-      for pos, snp, freq in profile:
-         f.write('%s\t%s\t%s\n' % (pos, ''.join(snp), ','.join(str(i) for i in freq)))
+      if profile:
+         average_e = 0.0
+
+         f.write('Note: at each position, an indel occurs with default probability of 11%.\n')
+         f.write('Pos\tSNP\tE\tMax E\tCumulative Expected Frequency\n')
+         for pos, snp, freq in profile:
+            entr, max_entr = entropy(freq)
+            average_e += entr
+            f.write('%s\t%s\t%.4f\t%.4f\t%s\n' %
+               (pos, ''.join(snp), entr, max_entr, ','.join(str(i) for i in freq)))
+
+         f.write('Average entropy: %.4f\n' %  (average_e / float(len(profile))))
       print 'Save SNP profile to snp_profile.txt'
 
 #------------------------------------------------------------------------------
@@ -135,6 +173,7 @@ if __name__ == '__main__':
    parser.add_argument('file_name', help='genome_file.fasta')
    parser.add_argument('-m','--mutation_rate',
       help='Base mutation rate (default %s)' % MUT_RATE, type=float, default=MUT_RATE)
+   parser.add_argument('-p', '--first_prob', help='Probability of first base in a SNP profile (default %s)'%FIRST_PROB, type=float, default=FIRST_PROB)
    parser.add_argument('-i','--indel_frac',
       help='Indel fraction of SNP (default %.4f)' % INDEL_FRAC, type=float, default=INDEL_FRAC)
    parser.add_argument('-ie','--indel_ext',
@@ -145,6 +184,7 @@ if __name__ == '__main__':
    args = vars(parser.parse_args())
    MUT_RATE, INDEL_FRAC, INDEL_EXT = args['mutation_rate'],args['indel_frac'],args['indel_ext']
    N = args['n']
+   FIRST_PROB = args['first_prob']
    DEBUG = args['debug']
 
    file_content = open(args['file_name']).read().strip()
@@ -169,6 +209,7 @@ if __name__ == '__main__':
    for i in range(N):
       generate_genome(dna, SNP_profile, header, i)
 
+   print 'Genomes are saved in x.fasta, reference.fasta and multigenome.fasta\n'
 
 #------------------------------------------------------------------------------
 # def w0(x): # Lambert W function using Newton's method
