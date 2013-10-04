@@ -1,4 +1,14 @@
-Tools used to generate / simulate multi-genomes
+Tools used to generate / simulate multi-genomes, reads
+
+==========================================================================
+generate_reads.go
+
+  -debug=false: Turn on debug mode.
+  -erate=0.01: Error rate (uniformly distributed).
+  -len=0: Read length.
+  -reads=0: Number of reads.
+  -seq="": Specify a file containing the sequence.
+  -w=1: number of workers
 
 ==========================================================================
 generate_genomes.py
