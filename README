@@ -1,6 +1,25 @@
 Tools used to generate / simulate multi-genomes, reads
 
 ==========================================================================
+eval_alignment.py
+
+usage: eval_alignment.py [-h] [-g G] reads alignment
+
+Evaludate aligned reads.
+
+positional arguments:
+  reads       file containing all reads.
+  alignment   file containing aligned reads.
+
+optional arguments:
+  -h, --help  show this help message and exit
+  -g G        Maximally allowable gap distance between positions of a read and
+              aligned read. Default=20
+
+
+Test data: reads.txt, alignment0.txt, alignment1.txt
+
+==========================================================================
 generate_reads.go
 
 Usage:
@@ -17,6 +36,9 @@ go run generate_reads.go --help
   -reads=0: Number of reads.
   -seq="": Specify a file containing the sequence.
   -w=1: number of workers
+
+
+Test data: sample_seq.txt
 
 ==========================================================================
 generate_genomes.py
@@ -46,23 +68,7 @@ optional arguments:
   -n N                  Number of genomes (default 10)
   --debug               Turn on debug mode (default False)
 
+
+Test data: sample_seq.fasta
+
 ==========================================================================
-
-generate_reads.py	
-	given a genome generate reads from it
-
-
-Usage: generate_reads.py [-h] [-e ERROR_RATE] [--debug] file_name length N
-
-Generate reads based on a reference genome.
-
-positional arguments:
-  file_name             genome_file.fasta
-  length                read length
-  N                     number of reads
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -e ERROR_RATE, --error_rate ERROR_RATE
-                        Base error rate (default 0.02)
-  --debug               Turn on debug mode (default False)
