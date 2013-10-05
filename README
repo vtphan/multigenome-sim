@@ -2,6 +2,8 @@ Tools used to generate / simulate multi-genomes, reads
 
 ==========================================================================
 eval_alignment.py
+	This program evaluate aligned reads.
+	A read can be aligned to multiple locations.
 
 usage: eval_alignment.py [-h] [-g G] reads alignment
 
@@ -21,6 +23,8 @@ Test data: reads.txt, alignment0.txt, alignment1.txt
 
 ==========================================================================
 generate_reads.go
+	This program generates reads given a sequence and sequencing error.
+	A read can occur at multiple locations.
 
 Usage:
 (1) generate index
