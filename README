@@ -3,6 +3,14 @@ Tools used to generate / simulate multi-genomes, reads
 ==========================================================================
 generate_reads.go
 
+Usage:
+(1) generate index
+	go run generate_reads.go -seq sequence_file
+(2) generate actual reads
+	go run generate_reads.go -seq sequence_file -reads N -len M -erate E
+
+Help:
+go run generate_reads.go --help
   -debug=false: Turn on debug mode.
   -erate=0.01: Error rate (uniformly distributed).
   -len=0: Read length.
