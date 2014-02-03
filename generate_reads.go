@@ -27,7 +27,7 @@ import (
 	"flag"
 	"log"
 	"encoding/gob"
-	// "bufio"
+	"bufio"
 	"path"
 	"runtime"
 	"math/rand"
@@ -92,7 +92,7 @@ func _load(thing interface{}, filename string) {
 	decOCC := gob.NewDecoder(fin)
 	err = decOCC.Decode(thing)
 	if err != nil {
-		log.Fatal("Load error:", filename, err)
+		fmt.Println("Unable to read file ("+filename+"): ",err)
 	}
 }
 
@@ -243,11 +243,21 @@ func (I *Index) show() {
 
 //-----------------------------------------------------------------------------
 func ReadSequence(file string) {
-	byte_array, err := ioutil.ReadFile(file)
-	if err != nil {
-		panic(err)
-	}
-	SEQ = append(bytes.Trim(byte_array, "\n\r "), byte('$'))
+   f, err := os.Open("reference2.fasta")
+   if err != nil {
+      panic(err)
+   }
+   defer f.Close()
+
+   scanner := bufio.NewScanner(f)
+   byte_array := make([]byte, 0)
+   for scanner.Scan() {
+      line := scanner.Bytes()
+      if len(line)>0 && line[0] != '>' {
+         byte_array = append(byte_array, bytes.Trim(line,"\n\r ")...)
+      }
+   }
+	SEQ = append(byte_array, byte('$'))
 }
 //-----------------------------------------------------------------------------
 // Build FM index given the file storing the text.
@@ -270,10 +280,14 @@ func print_byte_array(a []byte) {
 //-----------------------------------------------------------------------------
 
 func random_error(base byte) byte {
-	not_A := []byte{'C','G','T'}
-	not_T := []byte{'C','G','A'}
-	not_C := []byte{'A','G','T'}
-	not_G := []byte{'C','A','T'}
+   // not_A := []byte{'C','G','T'}
+   // not_T := []byte{'C','G','A'}
+   // not_C := []byte{'A','G','T'}
+   // not_G := []byte{'C','A','T'}
+   not_A := []byte{'c','g','t'}
+   not_T := []byte{'c','g','a'}
+   not_C := []byte{'a','g','t'}
+   not_G := []byte{'c','a','t'}
 	if base == 'A' {
 		return not_A[rand_gen.Intn(3)]
 	} else if base == 'C' {
@@ -300,7 +314,7 @@ func main() {
 			runtime.GOMAXPROCS(*workers)
 			result := make(chan []int, 100000)
 			ReadSequence(*seq_file)
-			idx := Load(*seq_file + ".index")
+			idx := Build(*seq_file)
 			for i:=0; i<*reads; i++ {
 				// fmt.Println(j, *read_len, idx.LEN)
 				// fmt.Printf("%d\t%s\n", j, string(SEQ[j:j+*read_len]))
@@ -309,13 +323,16 @@ func main() {
 			for i:=0; i<*reads; i++ {
 				indices := <- result
 				the_read := SEQ[indices[0]: indices[0] + *read_len]
-				var err_pos int
-				// fmt.Printf("%s\t", the_read)
-				for e:=0; e < int(*error_rate * float64(*read_len)); e++ {
-					err_pos = rand_gen.Intn(len(the_read))
-					the_read[err_pos] = random_error(the_read[err_pos])
-					// fmt.Printf("%d ", err_pos)
-				}
+				// var err_pos int
+				// for e:=0; e < int(*error_rate * float64(*read_len)); e++ {
+				// 	err_pos = rand_gen.Intn(len(the_read))
+				// 	the_read[err_pos] = random_error(the_read[err_pos])
+				// }
+            for k:=0; k<len(the_read); k++ {
+               if rand_gen.Float64() < *error_rate {
+                  the_read[k] = random_error(the_read[k])
+               }
+            }
 				fmt.Printf("%s\t", the_read)
 				for j:=0; j<len(indices); j++ {
 					fmt.Printf("%d ", indices[j])
