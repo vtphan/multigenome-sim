@@ -283,14 +283,10 @@ func print_byte_array(a []byte) {
 //-----------------------------------------------------------------------------
 
 func random_error(base byte) byte {
-   not_A := []byte{'C','G','T'}
-   not_T := []byte{'C','G','A'}
-   not_C := []byte{'A','G','T'}
-   not_G := []byte{'C','A','T'}
-   // not_A := []byte{'c','g','t'}
-   // not_T := []byte{'c','g','a'}
-   // not_C := []byte{'a','g','t'}
-   // not_G := []byte{'c','a','t'}
+   not_A, not_T, not_C, not_G :=
+      []byte{'C','G','T'}, []byte{'C','G','A'}, []byte{'A','G','T'}, []byte{'C','A','T'}
+   // not_A, not_T, not_C, not_G :=
+   //    []byte{'c','g','t'}, []byte{'c','g','a'}, []byte{'a','g','t'}, []byte{'c','a','t'}
 	if base == 'A' {
 		return not_A[rand_gen.Intn(3)]
 	} else if base == 'C' {
