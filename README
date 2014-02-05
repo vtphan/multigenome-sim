@@ -42,7 +42,7 @@ go run generate_reads.go --help
   -w=1: number of workers
 
 
-Test data: sample_seq.txt
+Test data: reference.fasta
 
 ==========================================================================
 generate_genomes.py
