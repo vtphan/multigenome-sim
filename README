@@ -26,9 +26,6 @@ generate_reads.go
 	This program generates reads given a sequence and sequencing error.
 	A read can occur at multiple locations.
 	
-Caveats: currently, the input sequence must not have any newline. Newlines
-	in Fasta files must be removed first.
-
 Usage:
 (1) generate index
 	go run generate_reads.go -seq sequence_file
