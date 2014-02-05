@@ -73,6 +73,6 @@ optional arguments:
   --debug               Turn on debug mode (default False)
 
 
-Test data: sample_seq.fasta
+Test data: reference.fasta
 
 ==========================================================================
