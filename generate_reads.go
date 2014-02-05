@@ -322,7 +322,8 @@ func main() {
 			}
 			for i:=0; i<*reads; i++ {
 				indices := <- result
-				the_read := SEQ[indices[0]: indices[0] + *read_len]
+				the_read := make([]byte, *read_len)
+            copy(the_read, SEQ[indices[0]: indices[0] + *read_len])
 				// var err_pos int
 				// for e:=0; e < int(*error_rate * float64(*read_len)); e++ {
 				// 	err_pos = rand_gen.Intn(len(the_read))
@@ -333,6 +334,9 @@ func main() {
                   the_read[k] = random_error(the_read[k])
                }
             }
+            // for j:=0; j<indices[0]; j++ {
+            //    fmt.Printf(" ")
+            // }
 				fmt.Printf("%s\t", the_read)
 				for j:=0; j<len(indices); j++ {
 					fmt.Printf("%d ", indices[j])
