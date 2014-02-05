@@ -1,12 +1,23 @@
-// Copyright 2013 Vinhthuy Phan
-// Usage:  go run generate_reads.go --help
-// Expected input format: sequence file should have no newlines.  Remove newlines from Fasta files.
-// Example output format:
 /*
+   Copyright 2013 Vinhthuy Phan
+   Usage:  go run generate_reads.go --help
+
+Expected input format: fasta format file.
+
+Each line of the output has the following format:
+   R  N p1 … pN  E q1 … qE
+where
+   + R is the content of the read
+   + N is the number of occurrences of this read in the genome
+   + p1 to pN are the locations of the read in the genome
+   + E is the number of errors
+   + q1 to qE is the locations of the errors in the read.  If E is equal to 0, then this list is empty.
+
+Example:
+
 ATTTAGGTACTACTAACTCGTGTGTTGCAGTTTTCGAAAATGAAAAAGTCGCGTTATAGAAAATTCAGAACGTGCCCATACTACTCACCCTTCTATAATT 1 25 2 51 70
 
-	This read occurs at 1 genome location: 25.
-   There are 2 errors at 2 read locations: 51 & 70
+   This means the read occurs at 1 genome location: 25, with 2 errors at read locations: 51 and 70.
 */
 package main
 
