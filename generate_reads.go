@@ -3,18 +3,10 @@
 // Expected input format: sequence file should have no newlines.  Remove newlines from Fasta files.
 // Example output format:
 /*
-	TAGGA	25 13
-	ATCAA	26
-	...
+ATTTAGGTACTACTAACTCGTGTGTTGCAGTTTTCGAAAATGAAAAAGTCGCGTTATAGAAAATTCAGAACGTGCCCATACTACTCACCCTTCTATAATT 1 25 2 51 70
 
-	This means TAGGA matches approximately with SEQ[25:30] and SEQ[13:18],  note: read length=5
-	The matching is approximate because there are errors.
-	It is possible that TAGGA matches approximately with other substrings aside from these.
-	Algorithm:
-		Let j be a random index
-		s = SEQ[j : j+read_len] (e.g. s=ATCAA)
-		report all occurence positions of s in SEQ, e.g. 25, 13.
-		insert errors randomly in s
+	This read occurs at 1 genome location: 25.
+   There are 2 errors at 2 read locations: 51 & 70
 */
 package main
 
@@ -280,14 +272,14 @@ func print_byte_array(a []byte) {
 //-----------------------------------------------------------------------------
 
 func random_error(base byte) byte {
-   // not_A := []byte{'C','G','T'}
-   // not_T := []byte{'C','G','A'}
-   // not_C := []byte{'A','G','T'}
-   // not_G := []byte{'C','A','T'}
-   not_A := []byte{'c','g','t'}
-   not_T := []byte{'c','g','a'}
-   not_C := []byte{'a','g','t'}
-   not_G := []byte{'c','a','t'}
+   not_A := []byte{'C','G','T'}
+   not_T := []byte{'C','G','A'}
+   not_C := []byte{'A','G','T'}
+   not_G := []byte{'C','A','T'}
+   // not_A := []byte{'c','g','t'}
+   // not_T := []byte{'c','g','a'}
+   // not_C := []byte{'a','g','t'}
+   // not_G := []byte{'c','a','t'}
 	if base == 'A' {
 		return not_A[rand_gen.Intn(3)]
 	} else if base == 'C' {
@@ -323,6 +315,7 @@ func main() {
 			for i:=0; i<*reads; i++ {
 				indices := <- result
 				the_read := make([]byte, *read_len)
+            var errors []int
             copy(the_read, SEQ[indices[0]: indices[0] + *read_len])
 				// var err_pos int
 				// for e:=0; e < int(*error_rate * float64(*read_len)); e++ {
@@ -332,15 +325,20 @@ func main() {
             for k:=0; k<len(the_read); k++ {
                if rand_gen.Float64() < *error_rate {
                   the_read[k] = random_error(the_read[k])
+                  errors = append(errors, k)
                }
             }
             // for j:=0; j<indices[0]; j++ {
             //    fmt.Printf(" ")
             // }
-				fmt.Printf("%s\t", the_read)
+				fmt.Printf("%s %d ", the_read, len(indices))
 				for j:=0; j<len(indices); j++ {
 					fmt.Printf("%d ", indices[j])
 				}
+            fmt.Printf("%d ", len(errors))
+            for j:=0; j<len(errors); j++ {
+               fmt.Printf("%d ", errors[j])
+            }
 				fmt.Println()
 			}
 		} else {
