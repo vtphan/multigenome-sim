@@ -246,7 +246,7 @@ func (I *Index) show() {
 
 //-----------------------------------------------------------------------------
 func ReadSequence(file string) {
-   f, err := os.Open("reference2.fasta")
+   f, err := os.Open(file)
    if err != nil {
       panic(err)
    }
