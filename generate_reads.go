@@ -283,18 +283,19 @@ func print_byte_array(a []byte) {
 //-----------------------------------------------------------------------------
 
 func random_error(base byte) byte {
-//	   not_A, not_T, not_C, not_G := []byte{'c','g','t'}, []byte{'c','g','a'}, []byte{'a','g','t'}, []byte{'c','a','t'}
 	not_A, not_T, not_C, not_G := []byte{'C','G','T'}, []byte{'C','G','A'}, []byte{'A','G','T'}, []byte{'C','A','T'}
-
-	if base == 'A' {
-		return not_A[rand_gen.Intn(3)]
-	} else if base == 'C' {
-		return not_C[rand_gen.Intn(3)]
-	} else if base == 'G' {
-		return not_G[rand_gen.Intn(3)]
-	} else {
-		return not_T[rand_gen.Intn(3)]
+	var c byte
+	switch (base){
+		case 'A': c = not_A[rand_gen.Intn(3)]
+		case 'C': c = not_C[rand_gen.Intn(3)]
+		case 'G': c = not_G[rand_gen.Intn(3)]
+		case 'T': c = not_T[rand_gen.Intn(3)]
 	}
+	if ! Debug {
+		return c
+	}
+	r := []byte{c}
+	return bytes.ToLower(r)[0]
 }
 
 //-----------------------------------------------------------------------------
