@@ -283,10 +283,9 @@ func print_byte_array(a []byte) {
 //-----------------------------------------------------------------------------
 
 func random_error(base byte) byte {
-   not_A, not_T, not_C, not_G :=
-      []byte{'C','G','T'}, []byte{'C','G','A'}, []byte{'A','G','T'}, []byte{'C','A','T'}
-   // not_A, not_T, not_C, not_G :=
-   //    []byte{'c','g','t'}, []byte{'c','g','a'}, []byte{'a','g','t'}, []byte{'c','a','t'}
+//	   not_A, not_T, not_C, not_G := []byte{'c','g','t'}, []byte{'c','g','a'}, []byte{'a','g','t'}, []byte{'c','a','t'}
+	not_A, not_T, not_C, not_G := []byte{'C','G','T'}, []byte{'C','G','A'}, []byte{'A','G','T'}, []byte{'C','A','T'}
+
 	if base == 'A' {
 		return not_A[rand_gen.Intn(3)]
 	} else if base == 'C' {
@@ -301,43 +300,41 @@ func random_error(base byte) byte {
 //-----------------------------------------------------------------------------
 func main() {
 	var seq_file = flag.String("seq", "", "Specify a file containing the sequence.")
-	var read_len = flag.Int("len", 0, "Read length.")
-	var reads = flag.Int("reads", 0, "Number of reads.")
-	var error_rate = flag.Float64("erate", 0.01, "Error rate (uniformly distributed).")
+	var read_len = flag.Int("len", 100, "Read length.")
+   var coverage = flag.Float64("c", 2.0, "Coverage")
+	var error_rate = flag.Float64("e", 0.01, "Error rate.")
 	var workers = flag.Int("w", 1, "number of workers")
 	flag.BoolVar(&Debug, "debug", false, "Turn on debug mode.")
 	flag.Parse()
 
 	if *seq_file != "" {
-		if *reads > 0 && *read_len > 0 {
+		if *coverage > 0 && *read_len > 0 {
 			runtime.GOMAXPROCS(*workers)
 			result := make(chan []int, 100000)
 			ReadSequence(*seq_file)
 			idx := Build(*seq_file)
-			for i:=0; i<*reads; i++ {
+         num_of_reads := int(*coverage * float64(idx.LEN) / float64(*read_len))
+			for i:=0; i<num_of_reads; i++ {
 				// fmt.Println(j, *read_len, idx.LEN)
 				// fmt.Printf("%d\t%s\n", j, string(SEQ[j:j+*read_len]))
 				go idx.Search(rand_gen.Intn(idx.LEN - *read_len), *read_len, result)
 			}
-			for i:=0; i<*reads; i++ {
+			the_read := make([]byte, *read_len)
+			for i:=0; i<num_of_reads; i++ {
 				indices := <- result
-				the_read := make([]byte, *read_len)
             var errors []int
             copy(the_read, SEQ[indices[0]: indices[0] + *read_len])
-				// var err_pos int
-				// for e:=0; e < int(*error_rate * float64(*read_len)); e++ {
-				// 	err_pos = rand_gen.Intn(len(the_read))
-				// 	the_read[err_pos] = random_error(the_read[err_pos])
-				// }
             for k:=0; k<len(the_read); k++ {
                if rand_gen.Float64() < *error_rate {
                   the_read[k] = random_error(the_read[k])
                   errors = append(errors, k)
                }
             }
-            // for j:=0; j<indices[0]; j++ {
-            //    fmt.Printf(" ")
-            // }
+            if Debug {
+	            for j:=0; j<indices[0]; j++ {
+   	            fmt.Printf(" ")
+      	      }
+      	   }
 				fmt.Printf("%s %d ", the_read, len(indices))
 				for j:=0; j<len(indices); j++ {
 					fmt.Printf("%d ", indices[j])
