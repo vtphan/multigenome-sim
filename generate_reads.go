@@ -32,7 +32,6 @@ import (
 	"encoding/gob"
 	"bufio"
 	"path"
-	"runtime"
 	"math/rand"
 	"time"
 )
@@ -55,23 +54,25 @@ type BWT struct {
 	data []byte
 }
 */
+type position uint32
+
 type Index struct{
-	SA []int 						// suffix array
-	C map[byte]int  				// count table
-	OCC map[byte][]int 			// occurence table
+	SA []position 						// suffix array
+	C map[byte]position  				// count table
+	OCC map[byte][]position 			// occurence table
 
-	END_POS int 					// position of "$" in the text
+	END_POS position 					// position of "$" in the text
 	SYMBOLS []int  				// sorted symbols
-	EP map[byte]int 				// ending row/position of each symbol
+	EP map[byte]position 				// ending row/position of each symbol
 
-	LEN int
+	LEN position
 	// un-exported variables
 	bwt []byte
-	freq map[byte]int  // Frequency of each symbol
+	freq map[byte]position  // Frequency of each symbol
 }
 //
 //-----------------------------------------------------------------------------
-type BySuffix []int
+type BySuffix []position
 
 func (s BySuffix) Len() int { return len(s) }
 func (s BySuffix) Swap(i, j int) { s[i], s[j] = s[j], s[i] }
@@ -100,8 +101,8 @@ func _load(thing interface{}, filename string) {
 }
 
 //-----------------------------------------------------------------------------
-func _load_occ(filename string, Len int) []int {
-	thing := make([]int, Len)
+func _load_occ(filename string, Len position) []position {
+	thing := make([]position, Len)
 	fin,err := os.Open(filename)
 	decOCC := gob.NewDecoder(fin)
 	err = decOCC.Decode(&thing)
@@ -124,7 +125,7 @@ func Load (dir string) *Index {
 	_load(&I.EP, path.Join(dir, "ep"))
 	_load(&I.LEN, path.Join(dir, "len"))
 
-	I.OCC = make(map[byte][]int)
+	I.OCC = make(map[byte][]position)
 	for _,symb := range I.SYMBOLS {
 		I.OCC[byte(symb)] = _load_occ(path.Join(dir, "occ."+string(symb)), I.LEN)
 	}
@@ -150,17 +151,28 @@ func (I *Index) Save(file string) {
 //-----------------------------------------------------------------------------
 // BWT is saved into a separate file
 func (I *Index) BuildSA_BWT() {
-	I.freq = make(map[byte]int)
-	I.SA = make([]int, len(SEQ))
-	for i := 0; i < len(SEQ); i++ {
+	I.LEN = position(len(SEQ))
+	I.freq = make(map[byte]position)
+	I.SA = make([]position, I.LEN)
+	I.bwt = make([]byte, I.LEN)
+	I.C = make(map[byte]position)
+	I.OCC = make(map[byte][]position)
+	I.EP = make(map[byte]position)
+	var i position
+	for i = 0; i < I.LEN; i++ {
 		I.SA[i] = i
 		I.freq[SEQ[i]]++
 	}
+	for c := range I.freq {
+		I.SYMBOLS = append(I.SYMBOLS, int(c))
+		I.OCC[c] = make([]position, I.LEN)
+		I.C[c] = 0
+	}
+	sort.Ints(I.SYMBOLS)
 	sort.Sort(BySuffix(I.SA))
 
-	I.bwt = make([]byte, len(SEQ))
-	for i := 0; i < len(I.SA); i++ {
-		I.bwt[i] = SEQ[(len(SEQ)+I.SA[i]-1)%len(SEQ)]
+	for i = 0; i < I.LEN; i++ {
+		I.bwt[i] = SEQ[(I.LEN+I.SA[i]-1)%I.LEN]
 		if I.bwt[i] == '$' {
 			I.END_POS = i
 		}
@@ -169,16 +181,6 @@ func (I *Index) BuildSA_BWT() {
 
 //-----------------------------------------------------------------------------
 func (I *Index) BuildIndex() {
-	I.C = make(map[byte]int)
-	I.OCC = make(map[byte][]int)
-	I.EP = make(map[byte]int)
-	I.LEN = len(SEQ)
-	for c := range I.freq {
-		I.SYMBOLS = append(I.SYMBOLS, int(c))
-		I.OCC[c] = make([]int, len(SEQ))
-		I.C[c] = 0
-	}
-	sort.Ints(I.SYMBOLS)
 	for i := 1; i < len(I.SYMBOLS); i++ {
 		curr_c, prev_c := byte(I.SYMBOLS[i]), byte(I.SYMBOLS[i-1])
 		I.C[curr_c] = I.C[prev_c] + I.freq[prev_c]
@@ -202,31 +204,31 @@ func (I *Index) BuildIndex() {
 // Search for all occurences of SEQ[j:j+read_len] in SEQ
 //-----------------------------------------------------------------------------
 
-func (I *Index) Search(j int, read_len int, result chan []int) {
-	var sp, ep, offset int
+func (I *Index) Search(j position, read_len position, result chan []position) {
+	var i, sp, ep, offset position
 	var ok bool
 
 	c := SEQ[j+read_len-1]
 	sp, ok = I.C[c]
 	if ! ok {
-		result <- make([]int, 0)
+		result <- make([]position, 0)
 		return
 	}
 	ep = I.EP[c]
 	// if Debug { fmt.Println("pattern: ", string(pattern), "\n\t", string(c), sp, ep) }
-	for i:= read_len-2; sp <= ep && i >= 0; i-- {
+	for i=read_len-2; sp <= ep && int(i) >= 0; i-- {
   		c = SEQ[j+i]
   		offset, ok = I.C[c]
   		if ok {
 			sp = offset + I.OCC[c][sp - 1]
 			ep = offset + I.OCC[c][ep] - 1
 		} else {
-			result <- make([]int, 0)
+			result <- make([]position, 0)
 			return
 		}
   		// if Debug { fmt.Println("\t", string(c), sp, ep) }
 	}
-	res := make([]int, ep-sp+1)
+	res := make([]position, ep-sp+1)
 	for i:=sp; i<=ep; i++ {
 		res[i-sp] = I.SA[i]
 	}
@@ -252,15 +254,23 @@ func ReadSequence(file string) {
    }
    defer f.Close()
 
-   scanner := bufio.NewScanner(f)
-   byte_array := make([]byte, 0)
-   for scanner.Scan() {
-      line := scanner.Bytes()
-      if len(line)>0 && line[0] != '>' {
-         byte_array = append(byte_array, bytes.Trim(line,"\n\r ")...)
-      }
-   }
-	SEQ = append(byte_array, byte('$'))
+   if file[len(file)-6:] == ".fasta" {
+	   scanner := bufio.NewScanner(f)
+	   byte_array := make([]byte, 0)
+	   for scanner.Scan() {
+	      line := scanner.Bytes()
+	      if len(line)>0 && line[0] != '>' {
+	         byte_array = append(byte_array, bytes.Trim(line,"\n\r ")...)
+	      }
+	   }
+		SEQ = append(byte_array, byte('$'))
+	} else {
+		byte_array, err := ioutil.ReadFile(file)
+		if err != nil {
+			panic(err)
+		}
+		SEQ = append(bytes.Trim(byte_array, "\n\r "), byte('$'))
+	}
 }
 //-----------------------------------------------------------------------------
 // Build FM index given the file storing the text.
@@ -300,31 +310,26 @@ func random_error(base byte) byte {
 
 //-----------------------------------------------------------------------------
 func main() {
-	var seq_file = flag.String("seq", "", "Specify a file containing the sequence.")
-	var read_len = flag.Int("len", 100, "Read length.")
+	var seq_file = flag.String("s", "", "Specify a file containing the sequence.")
+	var read_len = flag.Int("l", 100, "Read length.")
    var coverage = flag.Float64("c", 2.0, "Coverage")
 	var error_rate = flag.Float64("e", 0.01, "Error rate.")
-	var workers = flag.Int("w", 1, "number of workers")
 	flag.BoolVar(&Debug, "debug", false, "Turn on debug mode.")
 	flag.Parse()
-
+	seq_len := position(*read_len)
 	if *seq_file != "" {
-		if *coverage > 0 && *read_len > 0 {
-			runtime.GOMAXPROCS(*workers)
-			result := make(chan []int, 100000)
-			ReadSequence(*seq_file)
+		if *coverage > 0 && seq_len > 0 {
+			result := make(chan []position, 100000)
 			idx := Build(*seq_file)
-         num_of_reads := int(*coverage * float64(idx.LEN) / float64(*read_len))
+         num_of_reads := int(*coverage * float64(idx.LEN) / float64(seq_len))
 			for i:=0; i<num_of_reads; i++ {
-				// fmt.Println(j, *read_len, idx.LEN)
-				// fmt.Printf("%d\t%s\n", j, string(SEQ[j:j+*read_len]))
-				go idx.Search(rand_gen.Intn(idx.LEN - *read_len), *read_len, result)
+				idx.Search(position(rand_gen.Intn(int(idx.LEN - seq_len))), seq_len, result)
 			}
-			the_read := make([]byte, *read_len)
+			the_read := make([]byte, seq_len)
 			for i:=0; i<num_of_reads; i++ {
 				indices := <- result
             var errors []int
-            copy(the_read, SEQ[indices[0]: indices[0] + *read_len])
+            copy(the_read, SEQ[indices[0]: indices[0] + seq_len])
             for k:=0; k<len(the_read); k++ {
                if rand_gen.Float64() < *error_rate {
                   the_read[k] = random_error(the_read[k])
@@ -332,7 +337,7 @@ func main() {
                }
             }
             if Debug {
-	            for j:=0; j<indices[0]; j++ {
+	            for j:=0; j<int(indices[0]); j++ {
    	            fmt.Printf(" ")
       	      }
       	   }
@@ -350,5 +355,7 @@ func main() {
 			idx := Build(*seq_file)
 			idx.Save(*seq_file)
 		}
+	} else {
+		fmt.Println("Must provide sequence file")
 	}
 }
