@@ -34,13 +34,11 @@ Usage:
 
 Help:
 go run generate_reads.go --help
+  -c=2: Coverage
   -debug=false: Turn on debug mode.
-  -erate=0.01: Error rate (uniformly distributed).
-  -len=0: Read length.
-  -reads=0: Number of reads.
-  -seq="": Specify a file containing the sequence.
-  -w=1: number of workers
-
+  -e=0.01: Error rate.
+  -l=100: Read length.
+  -s="": Specify a file containing the sequence.
 
 Test data: reference.fasta
 
