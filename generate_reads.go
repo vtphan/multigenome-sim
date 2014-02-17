@@ -204,35 +204,33 @@ func (I *Index) BuildIndex() {
 // Search for all occurences of SEQ[j:j+read_len] in SEQ
 //-----------------------------------------------------------------------------
 
-func (I *Index) Search(j position, read_len position, result chan []position) {
-	var i, sp, ep, offset position
+func (I *Index) Search(j position, read_len position) []position {
+	var sp, ep, offset position
 	var ok bool
 
 	c := SEQ[j+read_len-1]
 	sp, ok = I.C[c]
 	if ! ok {
-		result <- make([]position, 0)
-		return
+		return make([]position, 0)
 	}
 	ep = I.EP[c]
 	// if Debug { fmt.Println("pattern: ", string(pattern), "\n\t", string(c), sp, ep) }
-	for i=read_len-2; sp <= ep && int(i) >= 0; i-- {
-  		c = SEQ[j+i]
+	for i:=int(read_len-2); sp <= ep && i >= 0; i-- {
+  		c = SEQ[j+position(i)]
   		offset, ok = I.C[c]
   		if ok {
 			sp = offset + I.OCC[c][sp - 1]
 			ep = offset + I.OCC[c][ep] - 1
 		} else {
-			result <- make([]position, 0)
-			return
+			return make([]position, 0)
 		}
   		// if Debug { fmt.Println("\t", string(c), sp, ep) }
 	}
 	res := make([]position, ep-sp+1)
-	for i:=sp; i<=ep; i++ {
-		res[i-sp] = I.SA[i]
+	for k:=sp; k<=ep; k++ {
+		res[k-sp] = I.SA[k]
 	}
- 	result <- res
+ 	return res
 }
 
 //-----------------------------------------------------------------------------
@@ -311,25 +309,27 @@ func random_error(base byte) byte {
 //-----------------------------------------------------------------------------
 func main() {
 	var seq_file = flag.String("s", "", "Specify a file containing the sequence.")
-	var read_len = flag.Int("l", 100, "Read length.")
+	var rl = flag.Int("l", 100, "Read length.")
    var coverage = flag.Float64("c", 2.0, "Coverage")
 	var error_rate = flag.Float64("e", 0.01, "Error rate.")
 	flag.BoolVar(&Debug, "debug", false, "Turn on debug mode.")
 	flag.Parse()
-	seq_len := position(*read_len)
+	read_len := position(*rl)
 	if *seq_file != "" {
-		if *coverage > 0 && seq_len > 0 {
-			result := make(chan []position, 100000)
+		if *coverage > 0 && read_len > 0 {
+			// result := make(chan []position, 100000)
 			idx := Build(*seq_file)
-         num_of_reads := int(*coverage * float64(idx.LEN) / float64(seq_len))
+         num_of_reads := int(*coverage * float64(idx.LEN) / float64(read_len))
+			read_indices := make([][]position, num_of_reads)
+
 			for i:=0; i<num_of_reads; i++ {
-				idx.Search(position(rand_gen.Intn(int(idx.LEN - seq_len))), seq_len, result)
+				read_indices[i] = idx.Search(position(rand_gen.Intn(int(idx.LEN - read_len))), read_len)
+				// idx.Search(position(rand_gen.Intn(int(idx.LEN - read_len))), read_len, result)
 			}
-			the_read := make([]byte, seq_len)
+			the_read := make([]byte, read_len)
 			for i:=0; i<num_of_reads; i++ {
-				indices := <- result
             var errors []int
-            copy(the_read, SEQ[indices[0]: indices[0] + seq_len])
+            copy(the_read, SEQ[read_indices[i][0]: read_indices[i][0] + read_len])
             for k:=0; k<len(the_read); k++ {
                if rand_gen.Float64() < *error_rate {
                   the_read[k] = random_error(the_read[k])
@@ -337,13 +337,13 @@ func main() {
                }
             }
             if Debug {
-	            for j:=0; j<int(indices[0]); j++ {
+	            for j:=0; j<int(read_indices[i][0]); j++ {
    	            fmt.Printf(" ")
       	      }
       	   }
-				fmt.Printf("%s %d ", the_read, len(indices))
-				for j:=0; j<len(indices); j++ {
-					fmt.Printf("%d ", indices[j])
+				fmt.Printf("%s %d ", the_read, len(read_indices[i]))
+				for j:=0; j<len(read_indices[i]); j++ {
+					fmt.Printf("%d ", read_indices[i][j])
 				}
             fmt.Printf("%d ", len(errors))
             for j:=0; j<len(errors); j++ {
