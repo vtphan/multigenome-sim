@@ -44,16 +44,6 @@ var Debug bool
 var SEQ []byte
 var rand_gen = rand.New(rand.NewSource(time.Now().UnixNano()))
 
-/*
-type List struct {
-	data []int
-}
-SA = new(List)
-OCC = make([]List, len(SYMBOLS))
-type BWT struct {
-	data []byte
-}
-*/
 type position uint32
 
 type Index struct{
@@ -321,12 +311,11 @@ func main() {
 			idx := Build(*seq_file)
          num_of_reads := int(*coverage * float64(idx.LEN) / float64(read_len))
 			read_indices := make([][]position, num_of_reads)
+			the_read := make([]byte, read_len)
 
 			for i:=0; i<num_of_reads; i++ {
 				read_indices[i] = idx.Search(position(rand_gen.Intn(int(idx.LEN - read_len))), read_len)
-				// idx.Search(position(rand_gen.Intn(int(idx.LEN - read_len))), read_len, result)
 			}
-			the_read := make([]byte, read_len)
 			for i:=0; i<num_of_reads; i++ {
             var errors []int
             copy(the_read, SEQ[read_indices[i][0]: read_indices[i][0] + read_len])
