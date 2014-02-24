@@ -310,15 +310,15 @@ func main() {
 			// result := make(chan []position, 100000)
 			idx := Build(*seq_file)
          num_of_reads := int(*coverage * float64(idx.LEN) / float64(read_len))
-			read_indices := make([][]position, num_of_reads)
+         // read_indices := make([][]position, num_of_reads)
+			read_indices := make([]position, num_of_reads)
 			the_read := make([]byte, read_len)
 
 			for i:=0; i<num_of_reads; i++ {
-				read_indices[i] = idx.Search(position(rand_gen.Intn(int(idx.LEN - read_len))), read_len)
-			}
-			for i:=0; i<num_of_reads; i++ {
+            // read_indices[i] = idx.Search(position(rand_gen.Intn(int(idx.LEN - read_len))), read_len)
+				read_indices = idx.Search(position(rand_gen.Intn(int(idx.LEN - read_len))), read_len)
             var errors []int
-            copy(the_read, SEQ[read_indices[i][0]: read_indices[i][0] + read_len])
+            copy(the_read, SEQ[read_indices[0]: read_indices[0] + read_len])
             for k:=0; k<len(the_read); k++ {
                if rand_gen.Float64() < *error_rate {
                   the_read[k] = random_error(the_read[k])
@@ -326,13 +326,13 @@ func main() {
                }
             }
             if Debug {
-	            for j:=0; j<int(read_indices[i][0]); j++ {
+	            for j:=0; j<int(read_indices[0]); j++ {
    	            fmt.Printf(" ")
       	      }
       	   }
-				fmt.Printf("%s %d ", the_read, len(read_indices[i]))
-				for j:=0; j<len(read_indices[i]); j++ {
-					fmt.Printf("%d ", read_indices[i][j])
+				fmt.Printf("%s %d ", the_read, len(read_indices))
+				for j:=0; j<len(read_indices); j++ {
+					fmt.Printf("%d ", read_indices[j])
 				}
             fmt.Printf("%d ", len(errors))
             for j:=0; j<len(errors); j++ {
