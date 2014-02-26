@@ -310,15 +310,18 @@ func main() {
 			// result := make(chan []position, 100000)
 			idx := Build(*seq_file)
          num_of_reads := int(*coverage * float64(idx.LEN) / float64(read_len))
-         // read_indices := make([][]position, num_of_reads)
 			read_indices := make([]position, num_of_reads)
 			the_read := make([]byte, read_len)
+         var rand_pos position
 
 			for i:=0; i<num_of_reads; i++ {
-            // read_indices[i] = idx.Search(position(rand_gen.Intn(int(idx.LEN - read_len))), read_len)
-				read_indices = idx.Search(position(rand_gen.Intn(int(idx.LEN - read_len))), read_len)
+            rand_pos = position(rand_gen.Intn(int(idx.LEN - read_len)))
+				read_indices = idx.Search(rand_pos, read_len)
             var errors []int
-            copy(the_read, SEQ[read_indices[0]: read_indices[0] + read_len])
+            if int(rand_pos+read_len) >= len(SEQ) {
+               panic("Read may be shorter than wanted.")
+            }
+            copy(the_read, SEQ[rand_pos: rand_pos + read_len])
             for k:=0; k<len(the_read); k++ {
                if rand_gen.Float64() < *error_rate {
                   the_read[k] = random_error(the_read[k])
@@ -326,7 +329,7 @@ func main() {
                }
             }
             if Debug {
-	            for j:=0; j<int(read_indices[0]); j++ {
+	            for j:=0; j<int(rand_pos); j++ {
    	            fmt.Printf(" ")
       	      }
       	   }
