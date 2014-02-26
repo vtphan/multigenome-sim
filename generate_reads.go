@@ -282,7 +282,7 @@ func print_byte_array(a []byte) {
 
 func random_error(base byte) byte {
 	not_A, not_T, not_C, not_G := []byte{'C','G','T'}, []byte{'C','G','A'}, []byte{'A','G','T'}, []byte{'C','A','T'}
-	var c byte
+	c := base
 	switch (base){
 		case 'A': c = not_A[rand_gen.Intn(3)]
 		case 'C': c = not_C[rand_gen.Intn(3)]
@@ -292,8 +292,7 @@ func random_error(base byte) byte {
 	if ! Debug {
 		return c
 	}
-	r := []byte{c}
-	return bytes.ToLower(r)[0]
+	return bytes.ToLower([]byte{c})[0]
 }
 
 //-----------------------------------------------------------------------------
