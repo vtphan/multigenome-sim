@@ -85,7 +85,7 @@ func verify(read string, positions []int, error_positions map[int]bool) {
       for j:=0; j<len(read); j++ {
          _, is_error := error_positions[j]
 
-         if (is_error && read[j] == substr[j]) || (!is_error && read[j] != substr[j]) {
+         if substr[j]!='N' && ((is_error && read[j] == substr[j]) || (!is_error && read[j] != substr[j])) {
             print_read_substr(read, substr, j, is_error)
          }
       }
