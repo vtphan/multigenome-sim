@@ -22,6 +22,14 @@ optional arguments:
 Test data: reads.txt, alignment0.txt, alignment1.txt
 
 ==========================================================================
+verify_reads.go
+
+Usage: go run verify_reads.go -s genome.fasta -r reads.txt
+
+	genome.fasta is the genome from which reads (reads.txt) are generated. 
+	(no mutation, only sequencing errors)
+
+==========================================================================
 generate_reads.go
 	This program generates reads given a sequence and sequencing error.
 	A read can occur at multiple locations.
@@ -73,11 +81,4 @@ optional arguments:
 
 Test data: reference.fasta
 
-==========================================================================
-verify_reads.go
-
-Usage: go run verify_reads.go -s genome.fasta -r reads.txt
-
-	genome.fasta is the genome from which reads (reads.txt) are generated. 
-	(no mutation, only sequencing errors)
 ==========================================================================
