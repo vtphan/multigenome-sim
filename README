@@ -74,3 +74,10 @@ optional arguments:
 Test data: reference.fasta
 
 ==========================================================================
+verify_reads.go
+
+Usage: go run verify_reads.go -s genome.fasta -r reads.txt
+
+	genome.fasta is the genome from which reads (reads.txt) are generated. 
+	(no mutation, only sequencing errors)
+==========================================================================
