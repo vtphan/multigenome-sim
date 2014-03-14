@@ -56,10 +56,7 @@ func print_read_substr(read, substr string, pos int, is_error bool) {
 func check_for_invalid_symbol_in_genome(s []byte) {
    for i:=0; i<len(s); i++ {
       base := s[i]
-      if base == 'N' {
-         fmt.Println("\tGenome contains N", s)
-         return
-      } else if base != 'A' && base != 'C' && base != 'G' && base != 'T'  && base != '$' {
+      if base != 'A' && base != 'C' && base != 'G' && base != 'T'  && base != '$' && base != 'N' {
          fmt.Println("\tGenome contains an invalid nucleotide.", base)
          return
       }
@@ -72,10 +69,7 @@ func check_for_invalid_symbol_in_genome(s []byte) {
 func check_for_invalid_symbol_in_read(s string) {
    for i:=0; i<len(s); i++ {
       base := s[i]
-      if base == 'N' {
-         fmt.Println("\tRead contains N", s)
-         return
-      } else if base != 'A' && base != 'C' && base != 'G' && base != 'T' {
+      if base != 'A' && base != 'C' && base != 'G' && base != 'T' && base != 'N' {
          fmt.Println("\tRead contains an invalid nucleotide:", base, s)
          return
       }
