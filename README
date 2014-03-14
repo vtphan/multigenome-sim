@@ -33,6 +33,7 @@ Usage: go run verify_reads.go -s genome.fasta -r reads.txt
 generate_reads.go
 	This program generates reads given a sequence and sequencing error.
 	A read can occur at multiple locations.
+	All reads will have at least one A, C, T, G.  No reads have only N's.
 	
 Usage:
 (1) generate index
