@@ -129,6 +129,10 @@ func main () {
       verify(read, positions, error_positions)
       count++
    }
+   err = scanner.Err()
+   if err != nil {
+      fmt.Println("May not process all reads to due error:", err)
+   }
 
    fmt.Printf("Finish verifying %d reads (from %s) in genome %s (len=%d)\n", count, *read_file, *genome_file, len(SEQ))
 }
