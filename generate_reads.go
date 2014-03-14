@@ -296,6 +296,18 @@ func random_error(base byte) byte {
 }
 
 //-----------------------------------------------------------------------------
+// return true if SEQ[pos: pos+length] is NNNNNNNNNNNN
+
+func justN(pos, read_len position) bool {
+   for i:=pos; i<pos+read_len; i++ {
+      if SEQ[pos] != 'N' {
+         return false
+      }
+   }
+   return true
+}
+
+//-----------------------------------------------------------------------------
 func main() {
 	var seq_file = flag.String("s", "", "Specify a file containing the sequence.")
 	var rl = flag.Int("l", 100, "Read length.")
@@ -315,11 +327,17 @@ func main() {
 
 			for i:=0; i<num_of_reads; i++ {
             rand_pos = position(rand_gen.Intn(int(idx.LEN - read_len)))
+            if justN(rand_pos, position(read_len)) {
+               i--
+               continue
+            }
+
 				read_indices = idx.Search(rand_pos, read_len)
             var errors []int
             if int(rand_pos+read_len) >= len(SEQ) {
                panic("Read may be shorter than wanted.")
             }
+
             copy(the_read, SEQ[rand_pos: rand_pos + read_len])
             for k:=0; k<len(the_read); k++ {
                if rand_gen.Float64() < *error_rate {
@@ -336,9 +354,9 @@ func main() {
 				for j:=0; j<len(read_indices); j++ {
 					fmt.Printf("%d ", read_indices[j])
 				}
-            fmt.Printf("%d ", len(errors))
+            fmt.Printf("%d", len(errors))
             for j:=0; j<len(errors); j++ {
-               fmt.Printf("%d ", errors[j])
+               fmt.Printf(" %d", errors[j])
             }
 				fmt.Println()
 			}
